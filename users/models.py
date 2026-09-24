@@ -22,3 +22,36 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class Payment(models.Model):
+    METHOD_CASH = 'cash'
+    METHOD_TRANSFER = 'transfer'
+    METHOD_CHOICES = [
+        (METHOD_CASH, 'Наличные'),
+        (METHOD_TRANSFER, 'Перевод на счёт'),
+    ]
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='payments', verbose_name='Пользователь'
+    )
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата оплаты')
+    paid_course = models.ForeignKey(
+        'lms.Course', on_delete=models.SET_NULL, blank=True, null=True,
+        related_name='payments', verbose_name='Оплаченный курс',
+    )
+    paid_lesson = models.ForeignKey(
+        'lms.Lesson', on_delete=models.SET_NULL, blank=True, null=True,
+        related_name='payments', verbose_name='Оплаченный урок',
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма оплаты')
+    payment_method = models.CharField(
+        max_length=20, choices=METHOD_CHOICES, default=METHOD_TRANSFER, verbose_name='Способ оплаты'
+    )
+
+    class Meta:
+        verbose_name = 'Платёж'
+        verbose_name_plural = 'Платежи'
+
+    def __str__(self):
+        return f'Платёж {self.amount} от {self.user}'
