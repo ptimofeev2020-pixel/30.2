@@ -1,17 +1,22 @@
-# LMS — 30.1 Вьюсеты и дженерики
+# LMS — 30.2 Сериализаторы
 
-Бэкенд LMS-системы на Django REST Framework: курсы и уроки, CRUD через ViewSet и Generic-классы.
+Продолжение LMS-проекта на Django REST Framework: вычисляемые и вложенные поля
+в сериализаторах, модель платежей, фильтрация.
 
 ## Стек
 
 - Python, Django 5.2
 - Django REST Framework
+- django-filter
 - SQLite
 
-## Приложения
+## Что добавлено в 30.2
 
-- `users` — кастомная модель пользователя (авторизация по email, телефон, город, аватар)
-- `lms` — модели «Курс» и «Урок» (связь один-ко-многим)
+- В сериализатор курса добавлено поле `lesson_count` (через `SerializerMethodField`)
+- В сериализатор курса добавлен вывод уроков вложенным сериализатором (`lessons`)
+- Модель `Payment` (пользователь, дата оплаты, оплаченный курс/урок, сумма, способ оплаты)
+- Фикстура `users/fixtures/payments.json` с тестовыми данными
+- Эндпоинт списка платежей с фильтрацией и сортировкой
 
 ## Установка и запуск
 
@@ -20,24 +25,16 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py loaddata payments.json
 python manage.py runserver
 ```
 
 ## Эндпоинты
 
-Курсы (ViewSet + DefaultRouter):
-
-- `GET/POST /courses/`
-- `GET/PUT/PATCH/DELETE /courses/<id>/`
-
-Уроки (Generic-классы):
-
-- `GET/POST /lessons/`
-- `GET/PUT/PATCH/DELETE /lessons/<id>/`
-
-Профиль пользователя (доп. задание, ViewSet):
-
-- `GET/POST /users/`, `GET/PUT/PATCH/DELETE /users/<id>/`
-
-Все эндпоинты возвращают JSON и проверяются через Postman. Авторизация не настраивается
-(разрешение `AllowAny`) — согласно заданию.
+- `GET /courses/<id>/` — курс с `lesson_count` и вложенными уроками
+- `GET /payments/` — список платежей, поддерживает:
+  - сортировку по дате: `?ordering=payment_date` / `?ordering=-payment_date`
+  - фильтр по курсу: `?paid_course=<id>`
+  - фильтр по уроку: `?paid_lesson=<id>`
+  - фильтр по способу оплаты: `?payment_method=cash` / `?payment_method=transfer`
+- `GET /users/<id>/` — профиль с историей платежей
